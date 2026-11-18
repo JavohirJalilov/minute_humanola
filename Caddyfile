@@ -10,6 +10,10 @@
 	}
 	# The Web App and its API
 	handle {
-		reverse_proxy backend:8000
+		reverse_proxy backend:8000 {
+			# Public traffic is always HTTPS (Cloudflare), though it reaches Caddy as plain HTTP: say so,
+			# or redirects such as /webapp -> /webapp/ would point at http://
+			header_up X-Forwarded-Proto https
+		}
 	}
 }
