@@ -1,0 +1,15 @@
+# The one public entry point. The Cloudflare tunnel delivers https://DOMAIN here as plain HTTP.
+:8000 {
+	# Telegram's webhook goes to the bot (it checks Telegram's secret token itself)
+	handle /telegram* {
+		reverse_proxy bot:8081
+	}
+	# The bot's own API stays inside the server: the bot reaches the backend directly
+	handle /internal/* {
+		respond 404
+	}
+	# The Web App and its API
+	handle {
+		reverse_proxy backend:8000
+	}
+}

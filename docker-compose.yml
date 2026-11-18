@@ -1,0 +1,54 @@
+# Production: docker compose up -d --build
+# Settings come from .env (see .env.example). Data (database, backups, bot state) lives in ./data.
+services:
+  # The backend: database, Web App and its API, background jobs. One process: the jobs and the
+  # outbox wake-up live in it, and SQLite has one writer at a time anyway
+  backend:
+    build: .
+    env_file: .env
+    environment:
+      BASE_URL: https://${DOMAIN:?set DOMAIN in .env}
+      DATABASE_URL: sqlite+aiosqlite:////srv/data/doppi.db
+      BACKUP_DIR: /srv/data/backups
+    volumes:
+      - ./data:/srv/data
+    restart: unless-stopped
+
+  # The Telegram bot, receiving updates by webhook at https://DOMAIN/telegram
+  bot:
+    build: .
+    command: ["python", "-m", "bot"]
+    env_file: .env
+    environment:
+      BACKEND_URL: http://backend:8000
+      WEBHOOK_URL: https://${DOMAIN}/telegram
+      BOT_STATE_FILE: /srv/data/bot-state.pickle
+    volumes:
+      - ./data:/srv/data
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Routes the public address: /telegram to the bot, everything else to the backend
+  app:
+    image: caddy:2.8-alpine
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    # Only reachable from this machine; public traffic arrives through the tunnel
+    ports:
+      - "127.0.0.1:${APP_PORT:-8020}:8000"
+    depends_on:
+      - backend
+      - bot
+    restart: unless-stopped
+
+  # Cloudflare Tunnel connector: publishes the app on DOMAIN over HTTPS without opening ports.
+  # In the Cloudflare dashboard the tunnel's public hostname for DOMAIN must point to http://app:8000
+  tunnel:
+    image: cloudflare/cloudflared:2026.10.5
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?set TUNNEL_TOKEN in .env}
+    depends_on:
+      - app
+    restart: unless-stopped
