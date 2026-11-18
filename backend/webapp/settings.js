@@ -122,12 +122,24 @@
     const staff = (await App.get("/staff-options")).staff;
     const who = fixed ? `<input type="hidden" name="scope" value="${fixed.scope}"><input type="hidden" name="user" value="${fixed.user}">
         <p class="lead">${esc(t("Own rate of {name}", { name: fixed.name }))}</p>`
-      : `<label class="field"><span>${esc(t("For"))}</span><select class="input" name="scope">
-          <option value="company">${esc(t("Everyone (company rate)"))}</option><option value="staff">${esc(t("A staff member's workers"))}</option>
-          <option value="worker">${esc(t("One worker"))}</option></select></label>
-        <label class="field hidden" data-for="staff"><span>${esc(t("Staff member"))}</span><select class="input" name="staff_user">${staff.map((s) => `<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select></label>
-        <div class="field hidden" data-for="worker"><span>${esc(t("Worker"))}</span><input class="input" name="worker_q" placeholder="${esc(t("Search name or phone"))}" autocomplete="off">
-          <input type="hidden" name="worker_user"><div class="list hidden" data-picks></div></div>`;
+      : `<div class="field"><span>${esc(t("For"))}</span>
+          <input type="hidden" name="scope" value="company">
+          <div class="tabs" role="radiogroup" aria-label="${esc(t("For"))}">
+            ${[["company", "Everyone"], ["staff", "Staff member"], ["worker", "Worker"]].map(([k, label]) =>
+              `<button type="button" role="radio" data-scope="${k}" aria-selected="${k === "company"}" aria-checked="${k === "company"}">${esc(t(label))}</button>`).join("")}
+          </div>
+          <small class="muted" data-scope-hint>${esc(t("Everyone (company rate)"))}</small></div>
+        <div class="field hidden" data-for="staff"><span>${esc(t("Staff member"))}</span>
+          <input type="hidden" name="staff_user">
+          ${staff.length ? `<div class="list picklist" role="radiogroup" aria-label="${esc(t("Staff member"))}">${staff.map((p) =>
+            `<button type="button" class="item" role="radio" aria-checked="false" data-pick-staff="${p.id}">
+              <span class="avatar" aria-hidden="true">${esc(App.initials(p.name))}</span><span class="main"><b>${esc(p.name)}</b></span><span class="tick" aria-hidden="true">✓</span></button>`).join("")}</div>`
+            : App.empty(t("No staff members yet. Make someone Staff in Users first."))}</div>
+        <div class="field hidden" data-for="worker"><span>${esc(t("Worker"))}</span>
+          <input type="hidden" name="worker_user">
+          <div class="picked hidden" data-picked></div>
+          <label class="search" data-worker-search>${App.icon("search", "sm")}<input type="search" name="worker_q" placeholder="${esc(t("Start typing the worker's name"))}" autocomplete="off" aria-label="${esc(t("Search workers"))}"></label>
+          <div class="list picklist hidden" data-picks></div></div>`;
     const result = await App.sheet({
       title: t("New pay rate"),
       body: who + `<label class="field"><span>${esc(t("So'm per hour of accepted recording"))}</span><input class="input" name="amount" inputmode="numeric" autocomplete="off"></label>
@@ -150,6 +162,12 @@
     if (result) { App.toast(t("Saved. Workers told: {count}.", { count: result.affected })); await App.refresh(); }
   };
 
+  /** The typed letters in bold inside a suggested name */
+  function highlight(name, q) {
+    const i = name.toLowerCase().indexOf(q.toLowerCase());
+    return i < 0 ? esc(name) : esc(name.slice(0, i)) + "<u>" + esc(name.slice(i, i + q.length)) + "</u>" + esc(name.slice(i + q.length));
+  }
+
   function mountRateForm(f, fixed) {
     const endBox = f.querySelector("[data-end]");
     // a start in the past recalculates the money of those days: say so while the date is chosen
@@ -160,6 +178,7 @@
         : t("Earlier days keep the rate that was in force on them.");
       when.classList.toggle("c-pen", !!past);
     });
+    const HINTS = { company: "Everyone (company rate)", staff: "A staff member's workers", worker: "One worker" };
     const sync = () => {
       const scope = f.scope.value;
       endBox.classList.toggle("hidden", scope === "company");
@@ -167,30 +186,60 @@
       if (fixed) return;
       f.querySelector('[data-for="staff"]').classList.toggle("hidden", scope !== "staff");
       f.querySelector('[data-for="worker"]').classList.toggle("hidden", scope !== "worker");
+      f.querySelector("[data-scope-hint]").textContent = t(HINTS[scope]);
     };
     f.end.addEventListener("change", sync);
     f.amount.addEventListener("input", () => { const d = f.amount.value.replace(/\D/g, ""); f.amount.value = d ? App.num(Number(d)) : ""; });
     if (!fixed) {
-      f.scope.addEventListener("change", sync);
-      const picks = f.querySelector("[data-picks]");
-      let timer;
-      f.worker_q.addEventListener("input", () => {
-        f.worker_user.value = "";
-        clearTimeout(timer);
-        timer = setTimeout(async () => {
-          if (f.worker_q.value.trim().length < 2) { picks.classList.add("hidden"); return; }
-          const d = await App.get("/users", { tab: "workers", q: f.worker_q.value, limit: 8 });
-          picks.innerHTML = d.rows.length ? d.rows.map((r) => `<button type="button" class="item" data-pick="${r.id}" data-name="${esc(r.name)}"><span class="main"><b>${esc(r.name)}</b><span class="mono">${esc(r.phone_masked)}</span></span></button>`).join("")
-            : App.empty(t("Nobody matches."));
-          picks.classList.remove("hidden");
-        }, 250);
+      // who it is for: one tap, and the next step opens straight away
+      f.querySelectorAll("[data-scope]").forEach((b) => b.addEventListener("click", () => {
+        f.scope.value = b.dataset.scope;
+        f.querySelectorAll("[data-scope]").forEach((x) => { const on = x === b; x.setAttribute("aria-selected", on); x.setAttribute("aria-checked", on); });
+        sync();
+        if (b.dataset.scope === "worker" && !f.worker_user.value) f.worker_q.focus();
+      }));
+      // staff members are listed as soon as "Staff member" is chosen: tap one
+      f.querySelectorAll("[data-pick-staff]").forEach((b) => b.addEventListener("click", () => {
+        f.staff_user.value = b.dataset.pickStaff;
+        f.querySelectorAll("[data-pick-staff]").forEach((x) => x.setAttribute("aria-checked", String(x === b)));
+      }));
+      // workers: suggestions from the first letter typed
+      const picks = f.querySelector("[data-picks]"), picked = f.querySelector("[data-picked]"), search = f.querySelector("[data-worker-search]");
+      let timer, seq = 0;
+      const suggest = async () => {
+        const q = f.worker_q.value.trim(), mine = ++seq;
+        if (!q) { picks.classList.add("hidden"); return; }
+        const d = await App.get("/users", { tab: "workers", q, limit: 8 });
+        if (mine !== seq) return; // an older answer arriving late
+        picks.innerHTML = d.rows.length ? d.rows.map((r) => `<button type="button" class="item" data-pick="${r.id}" data-name="${esc(r.name)}" data-phone="${esc(r.phone_masked)}">
+            <span class="avatar" aria-hidden="true">${esc(App.initials(r.name))}</span>
+            <span class="main"><b>${highlight(r.name, q)}</b><span class="mono">${esc(r.phone_masked)}</span></span></button>`).join("")
+          : App.empty(t("Nobody matches."));
+        picks.classList.remove("hidden");
+      };
+      f.worker_q.addEventListener("input", () => { f.worker_user.value = ""; clearTimeout(timer); timer = setTimeout(suggest, 150); });
+      f.worker_q.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault(); // Enter picks the first suggestion instead of submitting the form
+        picks.querySelector("[data-pick]")?.click();
       });
-      picks.addEventListener("click", (e) => {
-        const b = e.target.closest("[data-pick]");
-        if (!b) return;
+      const choose = (b) => {
         f.worker_user.value = b.dataset.pick;
-        f.worker_q.value = b.dataset.name;
+        picked.innerHTML = `<div class="item"><span class="avatar" aria-hidden="true">${esc(App.initials(b.dataset.name))}</span>
+          <span class="main"><b>${esc(b.dataset.name)}</b><span class="mono">${esc(b.dataset.phone)}</span></span>
+          <button type="button" class="btn sm ghost" data-change-worker>${esc(t("Change"))}</button></div>`;
+        picked.classList.remove("hidden");
+        search.classList.add("hidden");
         picks.classList.add("hidden");
+      };
+      picks.addEventListener("click", (e) => { const b = e.target.closest("[data-pick]"); if (b) choose(b); });
+      picked.addEventListener("click", (e) => {
+        if (!e.target.closest("[data-change-worker]")) return;
+        f.worker_user.value = "";
+        picked.classList.add("hidden");
+        search.classList.remove("hidden");
+        f.worker_q.value = "";
+        f.worker_q.focus();
       });
     }
     sync();

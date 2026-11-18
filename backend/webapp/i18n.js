@@ -545,6 +545,9 @@
     ["Friday", "Juma", "Пятница"],
     ["Saturday", "Shanba", "Суббота"],
     ["Sunday", "Yakshanba", "Воскресенье"],
+    ["Everyone", "Hamma", "Все"],
+    ["Start typing the worker's name", "Ishchining ismini yoza boshlang", "Начните вводить имя работника"],
+    ["No staff members yet. Make someone Staff in Users first.", "Hali xodimlar yo'q. Avval Foydalanuvchilar bo'limida kimnidir xodim qiling.", "Сотрудников пока нет. Сначала назначьте кого-нибудь сотрудником в разделе «Пользователи»."],
   ];
 
   const uz = {}, ru = {};
