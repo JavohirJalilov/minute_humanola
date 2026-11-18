@@ -284,8 +284,8 @@ async def test_rejections_reach_the_worker_as_one_summary_a_day(remote, settings
     (summary,) = await outbox_rows("recordings.rejected")
     assert summary.chat_id == team.ali.telegram_id
     assert "rejected 2 of your recordings" in summary.text and CAM in summary.text  # which phone
-    assert "10.11.2026 · 0h 20m — Too dark: Nothing can be seen" in summary.text  # the date, the length, UseMinute's reason
-    assert "11.11.2026 · 1h 35m" in summary.text and "Second video" not in summary.text
+    assert "10/11/2026 · 0h 20m — Too dark: Nothing can be seen" in summary.text  # the date, the length, UseMinute's reason
+    assert "11/11/2026 · 1h 35m" in summary.text and "Second video" not in summary.text
 
     remote.rows.append(upload("s5", status="flagged", recorded="2026-11-12T05:00:00Z"))
     await jobs.sync_and_notify(settings)
@@ -293,7 +293,7 @@ async def test_rejections_reach_the_worker_as_one_summary_a_day(remote, settings
     clock.shift(timedelta(days=1))
     await jobs.sync_and_notify(settings)
     second = (await outbox_rows("recordings.rejected"))[1]
-    assert "rejected 1 of your recordings" in second.text and "12.11.2026" in second.text
+    assert "rejected 1 of your recordings" in second.text and "12/11/2026" in second.text
     clock.shift(timedelta(days=1))
     await jobs.sync_and_notify(settings)
     assert len(await outbox_rows("recordings.rejected")) == 2  # nothing new, nothing sent

@@ -132,8 +132,9 @@
       title: t("New pay rate"),
       body: who + `<label class="field"><span>${esc(t("So'm per hour of accepted recording"))}</span><input class="input" name="amount" inputmode="numeric" autocomplete="off"></label>
         <label class="check hidden" data-end><input type="checkbox" name="end"><span>${esc(t("End their own rate: the wider rate applies again"))}</span></label>
-        <label class="field"><span>${esc(t("Starts on"))}</span><input class="input" type="date" name="start" value="${App.today}" min="${App.today}" required>
-          <small>${esc(t("Earlier days keep the rate that was in force on them."))}</small></label>`,
+        ${App.dateField({ name: "start", label: t("Starts on"), value: App.today,
+          quick: [["Today", App.today], ["Tomorrow", App.addDays(App.today, 1)], ["1st of next month", App.addDays(App.today.slice(0, 8) + "28", 4).slice(0, 8) + "01"]] })}
+        <small class="muted" data-rate-when>${esc(t("Earlier days keep the rate that was in force on them."))}</small>`,
       mount: (f) => mountRateForm(f, !!fixed),
       onSubmit: (f) => {
         const scope = f.scope.value;
@@ -143,7 +144,7 @@
         const raw = f.amount.value.replace(/[\s ]/g, "");
         if (!ending && (!/^\d+$/.test(raw) || Number(raw) < 1 || Number(raw) > 1e7))
           throw new App.ApiError(400, { message: "The rate must be a whole number between 1 and 10 000 000 so'm per hour" });
-        return App.post("/settings/rates", { scope, user_id: user, amount: ending ? null : Number(raw), start_date: f.start.value });
+        return App.post("/settings/rates", { scope, user_id: user, amount: ending ? null : Number(raw), start_date: App.readDate(f, "start", t("Starts on")) });
       },
     });
     if (result) { App.toast(t("Saved. Workers told: {count}.", { count: result.affected })); await App.refresh(); }
@@ -151,6 +152,14 @@
 
   function mountRateForm(f, fixed) {
     const endBox = f.querySelector("[data-end]");
+    // a start in the past recalculates the money of those days: say so while the date is chosen
+    const when = f.querySelector("[data-rate-when]");
+    f.start.addEventListener("change", () => {
+      const start = f.start.value, past = start && start < App.today;
+      when.textContent = past ? t("Days from {date} to today will be recalculated with this rate.", { date: App.dmy(start) })
+        : t("Earlier days keep the rate that was in force on them.");
+      when.classList.toggle("c-pen", !!past);
+    });
     const sync = () => {
       const scope = f.scope.value;
       endBox.classList.toggle("hidden", scope === "company");

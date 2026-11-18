@@ -33,12 +33,15 @@
     if (key !== "custom") { setPeriod(key); return App.refresh(); }
     const range = await App.sheet({
       title: t("Custom period"),
-      body: `<label class="field"><span>${esc(t("From"))}</span><input class="input" type="date" name="start" max="${App.today}" value="${esc(App.period.start || monthStart(App.today))}" required></label>
-        <label class="field"><span>${esc(t("To"))}</span><input class="input" type="date" name="end" max="${App.today}" value="${esc(App.period.end || App.today)}" required></label>`,
+      body: App.dateField({ name: "start", label: t("From"), value: App.period.start || monthStart(App.today), max: App.today,
+          quick: [["1st of this month", monthStart(App.today)], ["1st of last month", monthStart(App.addDays(monthStart(App.today), -1))]] })
+        + App.dateField({ name: "end", label: t("To"), value: App.period.end || App.today, max: App.today,
+          quick: [["Today", App.today], ["Yesterday", App.addDays(App.today, -1)]] }),
       submit: t("Show"),
       onSubmit: (f) => {
-        if (!f.start.value || !f.end.value || f.start.value > f.end.value) throw new App.ApiError(400, { message: "Choose a start date before the end date" });
-        return { start: f.start.value, end: f.end.value };
+        const start = App.readDate(f, "start", t("From")), end = App.readDate(f, "end", t("To"));
+        if (start > end) throw new App.ApiError(400, { message: "Choose a start date before the end date" });
+        return { start, end };
       },
     });
     if (range) { App.period = { key: "custom", ...range }; App.refresh(); }

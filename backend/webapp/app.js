@@ -52,18 +52,18 @@
     return `${h}h ${m}m`;
   };
   /** a calendar day "2026-11-16" → 16.11.2026 */
-  App.day = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join(".") : "");
+  App.day = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : "");
   function parts(iso) {
     const f = new Intl.DateTimeFormat("en-GB", { timeZone: App.tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
     const o = {};
     for (const p of f.formatToParts(new Date(iso))) o[p.type] = p.value;
     return o;
   }
-  /** a moment → 16.11.2026 09:42 in Tashkent time */
+  /** a moment → 16/11/2026 09:42 in Tashkent time */
   App.moment = function (iso) {
     if (!iso) return "";
     const p = parts(iso);
-    return `${p.day}.${p.month}.${p.year} ${p.hour}:${p.minute}`;
+    return `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}`;
   };
   /** When UseMinute data was last updated (APP-7): "today 09:42" or a full date */
   App.synced = function (iso) {
@@ -103,6 +103,7 @@
     gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
     useminute: '<path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9"/><path d="M19 3v4.5h-4.5M5 21v-4.5h4.5"/>',
+    calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
     chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
   };
   App.icon = (name, cls = "") => `<svg class="icon ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ""}</svg>`;
@@ -382,6 +383,159 @@
     return `<header class="top">${left}<div class="brand"><b>UseMinute</b><small>mini app</small></div>
       <button class="lang" data-act="language" aria-label="${esc(t("Language"))}">${esc(App.lang)}</button></header>`;
   }
+  // ---- date fields: dd/mm/yyyy everywhere. Typed (the slashes come by themselves) or picked from a
+  // calendar that opens right under the field; the form reads the ISO date from a hidden input.
+
+  const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+  const pad = (n) => String(n).padStart(2, "0");
+  const isoOf = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
+  /** "2026-11-19" → "19/11/2026" */
+  App.dmy = (iso) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : "");
+  /** "19/11/2026" → "2026-11-19", or null when it isn't a real date */
+  function parseDmy(text) {
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(text);
+    if (!m) return null;
+    const [d, mo, y] = [+m[1], +m[2], +m[3]];
+    const dt = new Date(Date.UTC(y, mo - 1, d));
+    return dt.getUTCFullYear() === y && dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d ? isoOf(y, mo, d) : null;
+  }
+
+  /**
+   * A date field. opts: name, label, value (ISO), min, max (ISO), quick: [[label, ISO], ...] shortcuts.
+   */
+  App.dateField = function ({ name, label, value = "", min = "", max = "", quick = [] }) {
+    const shortcuts = quick.filter(([, iso]) => (!min || iso >= min) && (!max || iso <= max));
+    return `<div class="field datef" data-datef data-min="${esc(min)}" data-max="${esc(max)}">
+      <span>${esc(label)}</span>
+      <div class="datebox">
+        <input class="input" data-date-text inputmode="numeric" autocomplete="off" maxlength="10" placeholder="${esc(t("dd/mm/yyyy"))}" value="${esc(App.dmy(value))}" aria-label="${esc(label)}">
+        <button type="button" class="iconbtn" data-date-toggle aria-expanded="false" aria-label="${esc(t("Open calendar"))}">${App.icon("calendar", "sm")}</button>
+      </div>
+      <input type="hidden" name="${esc(name)}" value="${esc(value)}">
+      ${shortcuts.length ? `<div class="quick">${shortcuts.map(([l, iso]) => `<button type="button" class="pill" data-date-pick="${iso}" aria-pressed="${iso === value}">${esc(t(l))}</button>`).join("")}</div>` : ""}
+      <div class="cal hidden" role="dialog" aria-label="${esc(t("Calendar"))}"></div>
+      <small class="date-hint">${value ? esc(weekdayName(value)) : ""}</small>
+    </div>`;
+  };
+
+  /** The ISO date of a date field, or an error the sheet shows when it is missing or wrong */
+  App.readDate = function (form, name, label) {
+    const box = form.querySelector(`input[type=hidden][name="${name}"]`).closest("[data-datef]");
+    const value = box.querySelector(`input[name="${name}"]`).value;
+    const text = box.querySelector("[data-date-text]").value.trim();
+    if (!value) throw new App.ApiError(400, { message: text ? "Check the date: use dd/mm/yyyy" : "Choose a date" });
+    const { min, max } = box.dataset;
+    if (min && value < min) throw new App.ApiError(400, { message: "{label}: the earliest date is {date}", params: { label, date: App.dmy(min) } });
+    if (max && value > max) throw new App.ApiError(400, { message: "{label}: the latest date is {date}", params: { label, date: App.dmy(max) } });
+    return value;
+  };
+
+  /** Digits become dd/mm/yyyy as they are typed: 19112026 → 19/11/2026. A slash typed after one
+      digit pads it (7/11 → 07/11), and other characters are dropped. */
+  function maskDate(raw) {
+    const groups = ["", "", ""], size = [2, 2, 4], slash = [false, false];
+    let i = 0;
+    for (const ch of raw) {
+      if (/\d/.test(ch)) {
+        if (groups[i].length === size[i]) { if (i === 2) break; i++; }
+        groups[i] += ch;
+      } else if ((ch === "/" || ch === "." || ch === "-" || ch === " ") && i < 2 && groups[i]) {
+        groups[i] = groups[i].padStart(2, "0");
+        slash[i] = true;
+        i++;
+      }
+    }
+    let out = groups[0];
+    if (groups[1] || slash[0]) out += "/" + groups[1];
+    if (groups[2] || slash[1]) out += "/" + groups[2];
+    return out;
+  }
+
+  function setDate(box, iso) {
+    box.querySelector("input[type=hidden]").value = iso || "";
+    if (iso) box.querySelector("[data-date-text]").value = App.dmy(iso);
+    box.querySelectorAll("[data-date-pick]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.datePick === iso)));
+    hint(box);
+    box.querySelector("input[type=hidden]").dispatchEvent(new Event("change", { bubbles: true }));
+  }
+  function hint(box, typing = false) {
+    const el = box.querySelector(".date-hint"), text = box.querySelector("[data-date-text]").value;
+    const iso = box.querySelector("input[type=hidden]").value, { min, max } = box.dataset;
+    let msg = "", bad = false;
+    if (iso && min && iso < min) { msg = t("The earliest date is {date}", { date: App.dmy(min) }); bad = true; }
+    else if (iso && max && iso > max) { msg = t("The latest date is {date}", { date: App.dmy(max) }); bad = true; }
+    else if (!iso && text.length === 10) { msg = t("This date doesn't exist"); bad = true; }
+    else if (!iso && text && !typing) { msg = t("Use dd/mm/yyyy, for example {example}", { example: App.dmy(App.today) }); bad = true; }
+    else if (iso) msg = weekdayName(iso);
+    el.textContent = msg;
+    el.classList.toggle("c-rej", bad);
+  }
+  function weekdayName(iso) {
+    const n = (new Date(iso + "T12:00:00Z").getUTCDay() + 6) % 7;
+    return t(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"][n]);
+  }
+
+  function drawCalendar(box) {
+    const cal = box.querySelector(".cal");
+    const value = box.querySelector("input[type=hidden]").value, { min, max } = box.dataset;
+    const [y, m] = (cal.dataset.month || (value || (max && max < App.today ? max : App.today)).slice(0, 7)).split("-").map(Number);
+    cal.dataset.month = `${y}-${pad(m)}`;
+    const first = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7; // Monday first
+    const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    const prev = m === 1 ? `${y - 1}-12` : `${y}-${pad(m - 1)}`, next = m === 12 ? `${y + 1}-01` : `${y}-${pad(m + 1)}`;
+    const canPrev = !min || `${prev}-31` >= min, canNext = !max || `${next}-01` <= max;
+    let cells = "";
+    for (let i = 0; i < first; i++) cells += "<span></span>";
+    for (let d = 1; d <= days; d++) {
+      const iso = isoOf(y, m, d), off = (min && iso < min) || (max && iso > max);
+      cells += `<button type="button" data-cal-day="${iso}" ${off ? "disabled" : ""} class="${iso === value ? "on" : ""}${iso === App.today ? " today" : ""}" aria-label="${esc(App.dmy(iso))}">${d}</button>`;
+    }
+    cal.innerHTML = `<div class="cal-head">
+        <button type="button" class="iconbtn" data-cal-nav="${prev}" ${canPrev ? "" : "disabled"} aria-label="${esc(t("Previous month"))}">${App.icon("back", "sm")}</button>
+        <b>${esc(t(MONTHS[m - 1]))} ${y}</b>
+        <button type="button" class="iconbtn" data-cal-nav="${next}" ${canNext ? "" : "disabled"} aria-label="${esc(t("Next month"))}">${App.icon("next", "sm")}</button></div>
+      <div class="cal-grid">${WEEKDAYS.map((w) => `<i>${esc(t(w))}</i>`).join("")}${cells}</div>`;
+  }
+  function toggleCalendar(box, open) {
+    const cal = box.querySelector(".cal"), btn = box.querySelector("[data-date-toggle]");
+    open = open ?? cal.classList.contains("hidden");
+    document.querySelectorAll("[data-datef] .cal:not(.hidden)").forEach((c) => { if (c !== cal) toggleCalendar(c.closest("[data-datef]"), false); });
+    cal.classList.toggle("hidden", !open);
+    btn.setAttribute("aria-expanded", String(open));
+    if (open) { delete cal.dataset.month; drawCalendar(box); cal.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
+  }
+
+  document.addEventListener("input", (e) => {
+    const input = e.target.closest("[data-date-text]");
+    if (!input) return;
+    input.value = maskDate(input.value);
+    const box = input.closest("[data-datef]"), iso = parseDmy(input.value);
+    box.querySelector("input[type=hidden]").value = iso || "";
+    box.querySelectorAll("[data-date-pick]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.datePick === iso)));
+    hint(box, true);
+    if (iso) {
+      const cal = box.querySelector(".cal");
+      if (!cal.classList.contains("hidden")) { cal.dataset.month = iso.slice(0, 7); drawCalendar(box); }
+      box.querySelector("input[type=hidden]").dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  });
+  document.addEventListener("focusout", (e) => {
+    const input = e.target.closest && e.target.closest("[data-date-text]");
+    if (input) hint(input.closest("[data-datef]"));
+  });
+  document.addEventListener("click", (e) => {
+    const box = e.target.closest("[data-datef]");
+    if (!box) return;
+    const toggle = e.target.closest("[data-date-toggle]"), day = e.target.closest("[data-cal-day]");
+    const nav = e.target.closest("[data-cal-nav]"), pick = e.target.closest("[data-date-pick]");
+    if (toggle) toggleCalendar(box);
+    else if (nav) { box.querySelector(".cal").dataset.month = nav.dataset.calNav; drawCalendar(box); }
+    else if (day) { setDate(box, day.dataset.calDay); toggleCalendar(box, false); App.haptic && App.haptic("select"); }
+    else if (pick) { setDate(box, pick.dataset.datePick); toggleCalendar(box, false); }
+    else if (e.target.closest("[data-date-text]") && !box.querySelector("input[type=hidden]").value) toggleCalendar(box, true);
+  });
+
   App.actions.close = () => tg && tg.close();
 
   /** Telegram links open in Telegram, others in the browser; inside Telegram a page can't open them itself */

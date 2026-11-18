@@ -35,13 +35,13 @@ def duration(minutes: Decimal | float | int, lang: str = "en") -> str:
 
 
 def day(value: date) -> str:
-    """DD.MM.YYYY"""
-    return f"{value:%d.%m.%Y}"
+    """DD/MM/YYYY"""
+    return f"{value:%d/%m/%Y}"
 
 
 def moment(value: datetime, tz: ZoneInfo) -> str:
-    """DD.MM.YYYY HH:MM in the configured timezone"""
-    return f"{value.astimezone(tz):%d.%m.%Y %H:%M}"
+    """DD/MM/YYYY HH:MM in the configured timezone"""
+    return f"{value.astimezone(tz):%d/%m/%Y %H:%M}"
 
 
 def mask_phone(phone: str) -> str:

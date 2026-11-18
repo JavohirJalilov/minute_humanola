@@ -146,14 +146,15 @@
       ${hint ? `<small>${esc(hint)}</small>` : ""}</label>`;
   }
   function dateNoteFields() {
-    return `<label class="field"><span>${esc(t("Date paid"))}</span><input class="input" type="date" name="paid_on" value="${App.today}" max="${App.today}" required></label>
-      <label class="field"><span>${esc(t("Note (optional)"))}</span><input class="input" name="note" maxlength="500" placeholder="${esc(t("For example: cash, week 46"))}"></label>`;
+    return App.dateField({ name: "paid_on", label: t("Date paid"), value: App.today, max: App.today,
+        quick: [["Today", App.today], ["Yesterday", App.addDays(App.today, -1)]] })
+      + `<label class="field"><span>${esc(t("Note (optional)"))}</span><input class="input" name="note" maxlength="500" placeholder="${esc(t("For example: cash, week 46"))}"></label>`;
   }
   function readAmount(f) {
     const raw = f.amount.value.replace(/[\s ]/g, "");
     const n = Number(raw);
     if (!/^\d+$/.test(raw) || n < 1 || n > 1e9) throw new App.ApiError(400, { message: "The amount must be a whole number between 1 and 1 000 000 000 so'm" });
-    if (f.paid_on.value > App.today) throw new App.ApiError(400, { message: "The date paid can't be in the future" });
+    App.readDate(f, "paid_on", t("Date paid"));
     return n;
   }
   function groupDigits(form) {

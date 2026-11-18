@@ -228,3 +228,23 @@ textarea.input { height: auto; min-height: 88px; padding: 12px 14px; resize: ver
 .clip video { width: 100%; max-height: 60vh; border-radius: 10px; background: #000; }
 .clip .linkbtn { align-self: flex-start; font-size: 12px; text-decoration: underline; }
 .day-body .loading { min-height: 80px; }
+
+/* Date fields: dd/mm/yyyy, typed or picked from the calendar under the field */
+.datef .datebox { display: flex; gap: 8px; align-items: stretch; }
+.datef .datebox .input { flex: 1; min-width: 0; font-family: var(--mono); letter-spacing: .04em; font-size: 16px; }
+.datef .datebox .iconbtn { width: 48px; height: auto; flex-shrink: 0; }
+.datef .datebox .iconbtn[aria-expanded="true"] { background: var(--ink); color: var(--surface); }
+.datef .quick { display: flex; gap: 6px; flex-wrap: wrap; }
+.datef .quick .pill { min-height: 32px; padding: 4px 12px; font-size: 13px; }
+.datef .date-hint { font-size: 12px; color: var(--muted); min-height: 16px; }
+.datef .date-hint.c-rej { color: var(--rej-ink); }
+.cal { border: 1px solid var(--line); border-radius: 14px; padding: 10px; background: var(--surface); }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.cal-head b { font-size: 15px; font-weight: 600; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center; }
+.cal-grid i { font: 500 11px var(--mono); font-style: normal; color: var(--muted); padding: 4px 0; text-transform: uppercase; }
+.cal-grid button { aspect-ratio: 1; min-height: 38px; border: 0; border-radius: 10px; background: none; color: var(--ink); font: 500 15px var(--sans); cursor: pointer; }
+.cal-grid button:hover:not(:disabled) { background: var(--soft); }
+.cal-grid button.today { box-shadow: inset 0 0 0 1px var(--line2); font-weight: 700; }
+.cal-grid button.on { background: var(--ink); color: var(--surface); }
+.cal-grid button:disabled { color: var(--line2); cursor: default; }

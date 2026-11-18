@@ -162,7 +162,7 @@ async def test_a_rate_change_is_announced_to_the_workers_it_affects(client, team
     assert r.json()["affected"] == 2  # SET-11: the linked workers; Cem has no phone
     told = {m.chat_id: m.text for m in await outbox_rows("rate.changed")}
     assert set(told) == {team.ali.telegram_id, team.bek.telegram_id}
-    assert "20 000" in told[team.ali.telegram_id] and settings.today().strftime("%d.%m.%Y") in told[team.ali.telegram_id]
+    assert "20 000" in told[team.ali.telegram_id] and settings.today().strftime("%d/%m/%Y") in told[team.ali.telegram_id]
 
     # a rate for one staff member reaches only that staff member's workers
     await client.post("/api/settings/rates", json={"scope": "staff", "user_id": team.staff2.id, "amount": 22_000}, headers=auth(team.admin))
