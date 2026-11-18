@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="40 -9 320 320" width="320" height="320" role="img" aria-label="Döppi Camera: a black Chust do'ppi with a camera lens in its pepper motif">
+<defs>
+<pattern id="e-hatch" width="3.2" height="3.2" patternUnits="userSpaceOnUse" patternTransform="rotate(40)">
+<rect width="3.2" height="3.2" fill="#0B0B0C"/>
+<rect width="1.3" height="3.2" fill="#F4F4F1"/>
+</pattern>
+<clipPath id="e-left"><path d="M48 178 Q52 130 66 112 Q78 100 92 98 L92 185 Z"/></clipPath>
+<clipPath id="e-right"><path d="M318 94 Q332 98 340 110 Q350 130 350 174 L318 180 Z"/></clipPath>
+<g id="e-buta">
+<path d="M-38 6 A26 26 0 0 0 14 6 C16 -8 28 -20 42 -28 C26 -27 6 -31 -14 -21 C-30 -13 -38 -4 -38 6 Z" fill="#F4F4F1"/>
+<path transform="translate(-12 6) scale(0.82) translate(12 -6)" d="M-38 6 A26 26 0 0 0 14 6 C16 -8 28 -20 42 -28 C26 -27 6 -31 -14 -21 C-30 -13 -38 -4 -38 6 Z" fill="#0B0B0C"/>
+<path transform="translate(-12 6) scale(0.68) translate(12 -6)" d="M-38 6 A26 26 0 0 0 14 6 C16 -8 28 -20 42 -28 C26 -27 6 -31 -14 -21 C-30 -13 -38 -4 -38 6 Z" fill="none" stroke="#F4F4F1" stroke-width="1.6"/>
+<path transform="translate(-12 6) scale(0.54) translate(12 -6)" d="M-38 6 A26 26 0 0 0 14 6 C16 -8 28 -20 42 -28 C26 -27 6 -31 -14 -21 C-30 -13 -38 -4 -38 6 Z" fill="url(#e-hatch)"/>
+<path d="M42 -28 C52 -32 55 -20 47 -17 C43 -16 41 -20 44 -22" fill="none" stroke="#F4F4F1" stroke-width="2.4" stroke-linecap="round"/>
+<circle cx="-30" cy="24" r="1.6" fill="#F4F4F1"/>
+<circle cx="-22" cy="31" r="1.6" fill="#F4F4F1"/>
+<circle cx="-12" cy="35" r="1.6" fill="#F4F4F1"/>
+</g>
+<g id="e-cell">
+<path d="M-8 11 L-8 -1 C-8 -11 8 -11 8 -1 L8 11" fill="none" stroke="#F4F4F1" stroke-width="2" stroke-linejoin="round"/>
+<path d="M-3.6 11 L-3.6 2 C-3.6 -3.5 3.6 -3.5 3.6 2 L3.6 11" fill="none" stroke="#F4F4F1" stroke-width="1.3"/>
+<circle cx="0" cy="-5.2" r="1.3" fill="#F4F4F1"/>
+</g>
+</defs>
+<ellipse cx="200" cy="238" rx="158" ry="9" fill="#0B0B0C" fill-opacity="0.14"/>
+<path d="M66 112 Q78 100 92 98 Q205 84 318 94 Q332 98 340 110 Q296 58 202 58 Q108 58 66 112 Z" fill="#1F1F22"/>
+<path d="M92 98 L204 70 L318 94" fill="none" stroke="#38383D" stroke-width="1.3"/>
+<path d="M204 70 L202 58" fill="none" stroke="#38383D" stroke-width="1.3"/>
+<g transform="translate(206 80) scale(0.5 0.2)" opacity="0.35"><use href="#e-buta"/></g>
+<path d="M48 178 Q52 130 66 112 Q78 100 92 98 Q205 84 318 94 Q332 98 340 110 Q350 130 350 174 Q200 206 48 178 Z" fill="#0B0B0C"/>
+<path d="M48 178 Q52 130 66 112 Q78 100 92 98 L92 185 Z" fill="#FFFFFF" fill-opacity="0.06"/>
+<path d="M318 94 Q332 98 340 110 Q350 130 350 174 L318 180 Z" fill="#000000" fill-opacity="0.5"/>
+<g clip-path="url(#e-left)"><g transform="translate(74 136) scale(-0.42 0.95)"><use href="#e-buta"/></g></g>
+<g clip-path="url(#e-right)"><g transform="translate(332 134) scale(0.3 0.92)" opacity="0.7"><use href="#e-buta"/></g></g>
+<g transform="translate(196 142) scale(1.22)"><use href="#e-buta"/></g>
+<path d="M92 98 L92 185 M318 94 L318 180" fill="none" stroke="#2E2E33" stroke-width="1.5"/>
+<path d="M66 112 Q78 100 92 98 Q205 84 318 94 Q332 98 340 110" fill="none" stroke="#45454B" stroke-width="1.3"/>
+<path d="M48 178 Q200 206 350 174 L352 208 Q200 250 46 214 Z" fill="#0B0B0C"/>
+<path d="M48 178 Q60 181 92 185 L92 219 Q64 216 46 214 Z" fill="#FFFFFF" fill-opacity="0.05"/>
+<path d="M318 180 Q336 177 350 174 L352 208 Q336 212 318 216 Z" fill="#000000" fill-opacity="0.5"/>
+<path d="M48 178 Q200 206 350 174" fill="none" stroke="#F4F4F1" stroke-width="2.2"/>
+<path d="M47 183 Q200 211 350 179" fill="none" stroke="#F4F4F1" stroke-width="0.9" stroke-dasharray="2.5 2.5"/>
+<path d="M46 210 Q200 246 352 204" fill="none" stroke="#F4F4F1" stroke-width="1.4"/>
+<g transform="translate(60.8 199.7) rotate(9.5) scale(0.5 1.01)"><use href="#e-cell"/></g>
+<g transform="translate(83.9 203.7) rotate(7.8) scale(0.66 1.04)"><use href="#e-cell"/></g>
+<g transform="translate(107.1 206.9) rotate(6.1) scale(0.86 1.06)"><use href="#e-cell"/></g>
+<g transform="translate(130.2 209.3) rotate(4.4) scale(0.85 1.07)"><use href="#e-cell"/></g>
+<g transform="translate(153.3 210.9) rotate(2.7) scale(0.85 1.08)"><use href="#e-cell"/></g>
+<g transform="translate(176.4 211.7) rotate(1.0) scale(0.85 1.09)"><use href="#e-cell"/></g>
+<g transform="translate(199.5 211.8) rotate(-0.8) scale(0.85 1.09)"><use href="#e-cell"/></g>
+<g transform="translate(222.5 211.0) rotate(-2.5) scale(0.85 1.08)"><use href="#e-cell"/></g>
+<g transform="translate(245.6 209.4) rotate(-4.2) scale(0.85 1.07)"><use href="#e-cell"/></g>
+<g transform="translate(268.6 207.0) rotate(-5.9) scale(0.85 1.05)"><use href="#e-cell"/></g>
+<g transform="translate(291.5 203.9) rotate(-7.6) scale(0.85 1.02)"><use href="#e-cell"/></g>
+<g transform="translate(314.5 199.9) rotate(-9.4) scale(0.6 0.99)" opacity="0.75"><use href="#e-cell"/></g>
+<g transform="translate(337.4 195.2) rotate(-11.0) scale(0.42 0.96)" opacity="0.6"><use href="#e-cell"/></g>
+<circle cx="181.4" cy="149.3" r="12.5" fill="#0B0B0C" stroke="#F4F4F1" stroke-width="2.6"/>
+<circle cx="181.4" cy="149.3" r="7.6" fill="none" stroke="#F4F4F1" stroke-width="1.4"/>
+<circle cx="181.4" cy="149.3" r="3.6" fill="#F4F4F1"/>
+<circle cx="177.6" cy="145.5" r="1.4" fill="#F4F4F1"/>
+</svg>

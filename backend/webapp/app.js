@@ -375,12 +375,19 @@
 
   App.home = () => "#/" + (App.me ? App.me.start : "progress");
 
+  /** The do'ppi logo with the bot's own name (as set in BotFather), in every screen's header */
+  App.brand = () => {
+    const name = (App.me && App.me.bot && App.me.bot.name) || "Döppi Camera";
+    return `<div class="brand"><span class="logo"><img src="logo.svg" alt="" width="30" height="30"></span>
+      <span class="name"><b>${esc(name)}</b><small>mini app</small></span></div>`;
+  };
+
   function header(page, params, query) {
     const back = page && page.back ? page.back(params, query) : null;
     const left = back
       ? `<a class="linkbtn" href="${esc(back)}">${App.icon("back", "sm")}${esc(t("Back"))}</a>`
       : (inTelegram ? `<button class="linkbtn" data-act="close">${esc(t("Close"))}</button>` : "<span></span>");
-    return `<header class="top">${left}<div class="brand"><b>UseMinute</b><small>mini app</small></div>
+    return `<header class="top">${left}${App.brand()}
       <button class="lang" data-act="language" aria-label="${esc(t("Language"))}">${esc(App.lang)}</button></header>`;
   }
   // ---- date fields: dd/mm/yyyy everywhere. Typed (the slashes come by themselves) or picked from a
