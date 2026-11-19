@@ -62,8 +62,8 @@
       ${App.bar(p)}
       <div class="parts">
         <div><span class="p c-acc">${Math.round(p.accepted.percent)}% · ${esc(App.dur(p.accepted.minutes))}</span><b>${esc(money("accepted"))}</b><span class="k">${esc(t("Earned"))}</span></div>
-        <div><span class="p c-pen">${Math.round(p.pending.percent)}% · ${esc(App.dur(p.pending.minutes))}</span><b>${esc(money("pending"))}</b><span class="k">${esc(t("Pending review"))}</span></div>
-        <div><span class="p c-rej">${Math.round(p.rejected.percent)}% · ${esc(App.dur(p.rejected.minutes))}</span><b>${esc(money("rejected"))}</b><span class="k">${esc(t("Rejected"))}</span></div>
+        <div><span class="p c-pen">${Math.round(p.pending.percent)}% · ${esc(App.recCount(p.pending.recordings))}</span><b>${esc(App.dur(p.pending.minutes))}</b><span class="k">${esc(t("Pending review"))}</span></div>
+        <div><span class="p c-rej">${Math.round(p.rejected.percent)}% · ${esc(App.recCount(p.rejected.recordings))}</span><b>${esc(App.dur(p.rejected.minutes))}</b><span class="k">${esc(t("Rejected"))}</span></div>
       </div></a>`;
   };
 
@@ -71,7 +71,7 @@
   function totalHero(data) {
     const s = data.total, phones = data.phones.length;
     const part = (key, label, dot) => `<div><span class="k"><span class="dot ${dot}"></span>${esc(t(label))}</span>
-      <span class="t">${esc(App.dur(s[key].minutes))}</span><span class="m">${esc(App.money(s[key].amount))}</span></div>`;
+      <span class="t">${esc(App.dur(s[key].minutes))}</span><span class="m">${esc(key === "accepted" ? App.money(s[key].amount) : App.recCount(s[key].recordings))}</span></div>`;
     return `<section class="hero">
       <div class="row"><span class="k">${esc(t(phones === 1 ? "Total · 1 phone" : "Total · {count} phones", { count: phones }))}</span>
         <span class="sub">${esc(periodLabel())}</span></div>
@@ -262,7 +262,7 @@
     return `<section class="card day${open ? " open" : ""}" data-day="${esc(d.day)}">
       <button class="day-head" data-act="toggle-day" data-day="${esc(d.day)}" aria-expanded="${open}">
         <span class="main"><b>${esc(dayName(d.day))}</b>
-          <span>${esc(App.dur(d.minutes))} · ${esc(t(d.recordings === 1 ? "1 recording" : "{count} recordings", { count: d.recordings }))}${earned ? " · " + esc(earned) : ""}</span></span>
+          <span>${esc(App.dur(d.minutes))} · ${esc(App.recCount(d.recordings))}${earned ? " · " + esc(earned) : ""}</span></span>
         ${d.rejected.recordings ? App.chip(t("{count} rejected", { count: d.rejected.recordings }), "bad") : ""}
         ${App.icon("next", "sm chev")}
       </button>
@@ -292,7 +292,7 @@
     const [label, kind] = STATUS_CHIP[r.status] || ["Pending", "wait"];
     return `<div class="item col"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
       <div class="main"><b>${esc(hhmm(r.recorded_at))} · ${esc(App.dur(r.minutes))}</b>${r.task ? `<span>${esc(r.task)}</span>` : ""}</div>
-      <div class="end">${App.chip(t(label), kind)}${r.amount === null ? "" : `<span class="mono muted" style="font-size:12px">${esc(App.money(r.amount))}</span>`}</div></div>
+      <div class="end">${App.chip(t(label), kind)}${r.status !== "accepted" || r.amount === null ? "" : `<span class="mono muted" style="font-size:12px">${esc(App.money(r.amount))}</span>`}</div></div>
       ${r.status === "rejected" ? feedback(r) : ""}</div>`;
   }
 

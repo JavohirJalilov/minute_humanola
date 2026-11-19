@@ -548,6 +548,7 @@
     ["Everyone", "Hamma", "Все"],
     ["Start typing the worker's name", "Ishchining ismini yoza boshlang", "Начните вводить имя работника"],
     ["No staff members yet. Make someone Staff in Users first.", "Hali xodimlar yo'q. Avval Foydalanuvchilar bo'limida kimnidir xodim qiling.", "Сотрудников пока нет. Сначала назначьте кого-нибудь сотрудником в разделе «Пользователи»."],
+    ["Pending review: {time}", "Tekshiruvda: {time}", "На проверке: {time}"],
   ];
 
   const uz = {}, ru = {};

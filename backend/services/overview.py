@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend import roles
 from backend.config import Settings
-from backend.models import ACCEPTED, AWAITING, FUNDING, PAYMENT, REC_REJECTED, DoppiLink, Phone, Recording, StaffAssignment, Transfer, User
+from backend.models import ACCEPTED, AWAITING, FUNDING, PAYMENT, REC_PENDING, REC_REJECTED, DoppiLink, Phone, Recording, StaffAssignment, Transfer, User
 from backend.services import amounts, doppi, formats, people, transfers
 from backend.services.amounts import STATUSES, Money, Split
 
@@ -278,6 +278,8 @@ async def staff_workers(session: AsyncSession, settings: Settings, staff: User, 
             "phones": sum(r["phones"] for r in rows),
             "remaining": sum(r["remaining"] for r in rows),
             "pending_review": sum(r["pending_review"] or 0 for r in rows),
+            # time waiting for UseMinute's review is shown as time: it isn't money until accepted
+            "pending_minutes": sum(r["minutes"][REC_PENDING] for r in rows),
             "awaiting": sum(r["awaiting"] for r in rows),
             "cash_on_hand": cash.on_hand,
             "available": cash.available,
@@ -365,6 +367,7 @@ async def admin_staff(session: AsyncSession, settings: Settings) -> dict:
             "phones": sum(m.phones for m in mine),
             "to_be_paid": to_be_paid,
             "pending_review": sum(m.pending_review or 0 for m in mine),
+            "pending_minutes": sum(m.split.minutes(REC_PENDING) for m in mine),
             "cash_on_hand": c.on_hand,
             "funding_awaiting": c.funding_awaiting,
             "needs_funding": amounts.needs_funding(to_be_paid, c),
@@ -379,6 +382,7 @@ async def admin_staff(session: AsyncSession, settings: Settings) -> dict:
             "phones": sum(r["phones"] for r in rows),
             "to_be_paid": sum(r["to_be_paid"] for r in rows),
             "pending_review": sum(r["pending_review"] for r in rows),
+            "pending_minutes": sum(r["pending_minutes"] for r in rows),
             "staff_cash": sum(r["cash_on_hand"] for r in rows),
             "needs_funding": sum(r["needs_funding"] for r in rows),
         },

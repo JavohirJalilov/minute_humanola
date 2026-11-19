@@ -85,6 +85,7 @@ h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -.01em; }
 .cells .k { font-size: 10px; letter-spacing: .06em; }
 .cells b { font-size: 16px; font-weight: 600; white-space: nowrap; }
 .cells.three b { font-size: 14px; }
+.cells b.time { white-space: normal; }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: 1px; }
 .dot.acc { background: var(--acc); } .dot.pen { background: var(--pen); } .dot.rej { background: var(--rej); }
 .bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; gap: 2px; background: var(--hero-line); }

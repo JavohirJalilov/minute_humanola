@@ -250,3 +250,27 @@ async def test_the_split_shows_time_share_and_money_of_each_part(team, client):
     assert rows[0]["reason"].startswith("Hands not visible") and rows[0]["minutes"] == 90 and rows[0]["amount"] == 30_000
     only = (await client.get("/api/recordings", params={"status": "rejected"}, headers=auth(team.ali))).json()["recordings"]
     assert len(only) == 1  # PAYW-4: the rejected recordings with UseMinute's reason
+
+
+async def test_time_waiting_for_review_is_counted_in_time_not_money(client, team, settings):
+    """Pending review isn't money until accepted: staff totals carry it in minutes, the Excel table in hours."""
+    import io
+
+    from openpyxl import load_workbook
+
+    from backend.services import export
+
+    await add_rate(36_000)
+    await add_recording("cam-01@example.com", 90, "pending")
+    await add_recording("cam-01@example.com", 30, "rejected")
+    mine = (await client.get("/api/staff/workers", headers=auth(team.staff))).json()
+    assert mine["totals"]["pending_minutes"] == 90
+    assert mine["workers"][0]["minutes"] == {"accepted": 0, "pending": 90, "rejected": 30}
+    company = (await client.get("/api/admin/staff", headers=auth(team.admin))).json()
+    assert company["totals"]["pending_minutes"] == 90
+    assert {s["name"]: s["pending_minutes"] for s in company["staff"]}["Sam Staff"] == 90
+    async with db.ReadSession() as s:
+        sheet = load_workbook(io.BytesIO(await export.staff_table(s, settings, "en"))).active
+    header = [c.value for c in sheet[1]]
+    column = header.index("Pending review, hours") + 1
+    assert [row[column - 1].value for row in sheet.iter_rows(min_row=2) if row[0].value == "Sam Staff"] == [1.5]

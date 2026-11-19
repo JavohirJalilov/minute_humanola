@@ -33,7 +33,7 @@
       ${s.rate !== null && s.rate !== undefined ? `<span class="sub">${esc(t("Rate: {amount} per hour", { amount: App.money(s.rate) }))}</span>` : ""}</div>
       <span class="big" style="font-size:44px">${esc(App.num(over ? s.overpaid : s.remaining))} <small>${esc(App.currency())}</small></span>
       <div class="cells">${App.cell(t("Earned"), App.money(s.earned, false))}${App.cell(t("Paid"), App.num(s.paid))}
-        ${App.cell(t("Pending review"), App.money(s.pending_review, false), "pen")}${App.cell(t("Rejected"), App.money(s.rejected, false), "rej")}</div>`;
+        ${App.timeCell(t("Pending review"), s.minutes.pending, "pen")}${App.timeCell(t("Rejected"), s.minutes.rejected, "rej")}</div>`;
     if (s.awaiting) html += `<span class="sub" style="white-space:normal">${esc(t("Awaiting confirmation: {amount}. It counts once accepted.", { amount: App.money(s.awaiting) }))}</span>`;
     html += `</section>`;
     if (!s.available) html += App.info(t("No pay rate is set yet, so amounts are not available. Recording time is still shown."), true);
@@ -97,7 +97,7 @@
       <div class="parts"><div><span class="k">${esc(t("Earned"))}</span><b>${esc(App.money(w.earned, false))}</b></div>
         <div><span class="k">${esc(t("Paid"))}</span><b>${esc(App.num(w.paid))}</b></div>
         <div><span class="k">${esc(t(w.overpaid ? "Overpaid" : "Remaining"))}</span><b>${esc(App.num(w.overpaid || w.remaining))}</b></div></div>
-      ${w.pending_review ? `<span class="mono muted" style="font-size:11px">${esc(t("Pending review: {amount}", { amount: App.money(w.pending_review) }))}</span>` : ""}
+      ${w.minutes.pending ? `<span class="mono muted" style="font-size:11px">${esc(t("Pending review: {time}", { time: App.dur(w.minutes.pending) }))}</span>` : ""}
       ${opts.pay && !w.blocked ? `<button class="btn" style="height:44px;font-size:14px" data-act="pay" data-id="${w.id}" data-name="${esc(w.name)}" data-payable="${w.payable}">${esc(t("Send payment"))}</button>` : ""}
     </article>`;
   }
@@ -105,7 +105,7 @@
     return `<section class="hero"><div class="row"><span class="k">${esc(title)}</span>
         <span class="sub">${esc(t("{workers} workers · {phones} phones", { workers: totals.workers, phones: totals.phones }))}</span></div>
       <span class="big">${esc(App.num(totals.remaining))} <small>${esc(App.currency())}</small></span>
-      <div class="cells three">${App.cell(t("Cash on hand"), App.num(totals.cash_on_hand))}${App.cell(t("Pending rev."), App.num(totals.pending_review))}
+      <div class="cells three">${App.cell(t("Cash on hand"), App.num(totals.cash_on_hand))}${App.timeCell(t("Pending rev."), totals.pending_minutes)}
         ${App.cell(t("Awaiting"), App.num(totals.awaiting))}</div></section>`;
   }
 
@@ -257,7 +257,7 @@
       <div class="parts"><div><span class="k">${esc(t("To be paid"))}</span><b>${esc(App.num(s.to_be_paid))}</b></div>
         <div><span class="k">${esc(t("Cash"))}</span><b>${esc(App.num(s.cash_on_hand))}</b></div>
         <div><span class="k">${esc(t("Needs"))}</span><b class="${s.needs_funding ? "c-rej" : ""}">${esc(App.num(s.needs_funding))}</b></div></div>
-      ${s.pending_review ? `<span class="mono muted" style="font-size:11px">${esc(t("Pending review: {amount}", { amount: App.money(s.pending_review) }))}</span>` : ""}
+      ${s.pending_minutes ? `<span class="mono muted" style="font-size:11px">${esc(t("Pending review: {time}", { time: App.dur(s.pending_minutes) }))}</span>` : ""}
       ${s.id !== me && !s.blocked ? `<button class="btn ghost" style="height:44px;font-size:14px" data-act="fund" data-id="${s.id}" data-name="${esc(s.name)}" data-needs="${s.needs_funding}">${esc(t("Give funding"))}</button>` : ""}
     </article>`;
   }
@@ -270,7 +270,7 @@
     html += `<section class="hero"><div class="row"><span class="k">${esc(t("Company · {count} staff", { count: tot.staff }))}</span>
         <span class="sub">${esc(t("{workers} workers · {phones} phones", { workers: tot.workers, phones: tot.phones }))}</span></div>
       <div class="head" style="gap:6px"><span class="k">${esc(t("Needs funding"))}</span><span class="big">${esc(App.num(tot.needs_funding))} <small>${esc(App.currency())}</small></span></div>
-      <div class="cells three">${App.cell(t("To be paid"), App.num(tot.to_be_paid))}${App.cell(t("Staff cash"), App.num(tot.staff_cash))}${App.cell(t("Pending rev."), App.num(tot.pending_review))}</div></section>`;
+      <div class="cells three">${App.cell(t("To be paid"), App.num(tot.to_be_paid))}${App.cell(t("Staff cash"), App.num(tot.staff_cash))}${App.timeCell(t("Pending rev."), tot.pending_minutes)}</div></section>`;
     if (d.unassigned.length) { // PAYA-7
       html += `<section class="card warn" style="gap:10px"><div class="head" style="gap:4px"><span class="eyebrow c-pen">${esc(t("Nobody can pay them"))}</span>
           <h2 style="font-size:17px">${esc(t("{count} workers with a phone but no staff member", { count: d.unassigned.length }))}</h2></div>

@@ -186,7 +186,10 @@
   App.note = (text) => `<p class="note">${esc(text)}</p>`;
   App.info = (text, warn = false) => `<div class="info${warn ? " warn" : ""}">${App.icon("info", "sm")}<p>${esc(text)}</p></div>`;
   App.chip = (text, kind = "n") => `<span class="chip ${kind}">${esc(text)}</span>`;
+  App.recCount = (n) => t(n === 1 ? "1 recording" : "{count} recordings", { count: n });
   App.cell = (k, v, dot = "") => `<div><span class="k">${dot ? `<span class="dot ${dot}"></span>` : ""}${esc(k)}</span><b>${esc(v)}</b></div>`;
+  /** A cell holding a length of time: unlike money it may wrap ("3 soat / 50 daq") in a narrow box */
+  App.timeCell = (k, minutes, dot = "") => App.cell(k, App.dur(minutes), dot).replace("<b>", '<b class="time">');
   App.tabs = (items, current) =>
     `<div class="tabs" role="tablist">${items.map((i) => `<a role="tab" href="${esc(i.href)}" aria-selected="${i.key === current}">${esc(i.label)}</a>`).join("")}</div>`;
   App.roleName = (role) => t({ worker: "Worker", staff: "Staff", admin: "Admin", super_admin: "Super Admin" }[role] || role);

@@ -29,25 +29,30 @@ def _finish(wb: Workbook, widths: list[int]) -> bytes:
     return out.getvalue()
 
 
+def _hours(minutes: float) -> float:
+    """Time waiting for review is shown in hours, not money: it isn't earned until accepted."""
+    return round(minutes / 60, 1)
+
+
 async def staff_table(session: AsyncSession, settings: Settings, lang: str) -> bytes:
     """Every staff member with their totals, and the company totals in the last row (PAYA-1..3)."""
     data = await overview.admin_staff(session, settings)
     wb = Workbook()
     ws = wb.active
     ws.title = t(lang, "Staff")[:31]
-    columns = ["Staff member", "Workers", "Phones", "To be paid", "Pending review", "Cash on hand", "Funding awaiting", "Needs funding"]
+    columns = ["Staff member", "Workers", "Phones", "To be paid", "Pending review, hours", "Cash on hand", "Funding awaiting", "Needs funding"]
     ws.append([t(lang, c) for c in columns])
     for r in data["staff"]:
-        ws.append([r["name"], r["workers"], r["phones"], r["to_be_paid"], r["pending_review"], r["cash_on_hand"],
+        ws.append([r["name"], r["workers"], r["phones"], r["to_be_paid"], _hours(r["pending_minutes"]), r["cash_on_hand"],
                    r["funding_awaiting"], r["needs_funding"]])
     totals = data["totals"]
-    ws.append([t(lang, "Total"), totals["workers"], totals["phones"], totals["to_be_paid"], totals["pending_review"],
+    ws.append([t(lang, "Total"), totals["workers"], totals["phones"], totals["to_be_paid"], _hours(totals["pending_minutes"]),
                totals["staff_cash"], sum(r["funding_awaiting"] for r in data["staff"]), totals["needs_funding"]])
     for cell in ws[ws.max_row]:
         cell.font = Font(bold=True)
     for row in ws.iter_rows(min_row=2, min_col=4, max_col=8):
         for cell in row:
-            cell.number_format = "#,##0"
+            cell.number_format = "0.0" if cell.column == 5 else "#,##0"
     return _finish(wb, [32, 10, 10, 16, 16, 16, 18, 16])
 
 

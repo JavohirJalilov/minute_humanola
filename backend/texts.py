@@ -113,6 +113,7 @@ TEXTS: dict[str, tuple[str, str]] = {
     "Phones": ("Telefonlar", "Телефоны"),
     "To be paid": ("To'lanishi kerak", "К выплате"),
     "Pending review": ("Tekshiruvda", "На проверке"),
+    "Pending review, hours": ("Tekshiruvda, soat", "На проверке, часов"),
     "Cash on hand": ("Qo'ldagi naqd pul", "Наличные на руках"),
     "Funding awaiting": ("Tasdiq kutilayotgan mablag'", "Финансирование ждёт подтверждения"),
     "Needs funding": ("Mablag' kerak", "Нужно финансирование"),

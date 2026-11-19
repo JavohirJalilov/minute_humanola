@@ -102,7 +102,7 @@
       html += `<section class="hero"><div class="row"><span class="k">${esc(t(s.overpaid ? "Overpaid" : "Remaining"))}</span></div>
         <span class="big">${esc(App.num(s.overpaid || s.remaining))} <small>${esc(App.currency())}</small></span>
         <div class="cells">${App.cell(t("Earned"), App.money(s.earned, false))}${App.cell(t("Paid"), App.num(s.paid))}
-          ${App.cell(t("Pending review"), App.money(s.pending_review, false), "pen")}${App.cell(t("Rejected"), App.money(s.rejected, false), "rej")}</div></section>`;
+          ${App.timeCell(t("Pending review"), s.minutes.pending, "pen")}${App.timeCell(t("Rejected"), s.minutes.rejected, "rej")}</div></section>`;
       if (d.email || s.paid || s.awaiting) html += `<a class="btn ghost" href="#/payments/worker/${u.id}?from=user-${u.id}">${esc(t("Phone and payment history"))}</a>`;
 
       const buttons = [];
