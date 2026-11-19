@@ -311,3 +311,15 @@ async def test_an_email_linked_to_the_wrong_person_moves_with_its_recordings(cli
     code = await to_code_step(client, team.bek, mailbox, email="cam-01@example.com")
     assert (await post(client, team.bek, "verify", code=code)).status_code == 200
     assert (await client.get("/api/payments/me", headers=auth(team.bek))).json()["summary"]["earned"] == 60_000
+
+
+def test_the_sender_is_the_bots_name_with_a_plain_address(settings, monkeypatch):
+    """SMTP_FROM written with a name ("UseMinute <x@…>") once produced a broken From line, so the email
+    landed in spam or was dropped."""
+    from email.utils import parseaddr
+
+    monkeypatch.setattr(settings, "smtp_from", "UseMinute <codes@example.com>")
+    message = mailer.build(settings, "worker@example.com", "123456", "uz", "Döppi Camera", "doppicambot")
+    assert parseaddr(message["From"]) == ("Döppi Camera", "codes@example.com")
+    monkeypatch.setattr(settings, "smtp_from", "codes@example.com")
+    assert parseaddr(mailer.build(settings, "worker@example.com", "1", "en")["From"])[1] == "codes@example.com"

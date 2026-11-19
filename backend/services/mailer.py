@@ -75,3 +75,4 @@ async def send_verification(settings: Settings, to: str, code: str, lang: str,
         # The address is personal data: log only what kind of failure it was (NFR-3)
         log.error("Verification email could not be sent: %s", type(e).__name__)
         raise MailError("The email could not be sent") from e
+    log.info("Verification email accepted by the mail server")

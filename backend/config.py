@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import os
 from datetime import date, datetime
+from email.utils import parseaddr
 from functools import lru_cache
 from pathlib import Path
 from typing import Annotated
@@ -129,7 +130,9 @@ class Settings(BaseSettings):
 
     @property
     def mail_from(self) -> str:
-        return self.smtp_from or self.smtp_user
+        """The sender's bare address. SMTP_FROM may be written "Name <address>": the name is dropped, since
+        the email always goes out under the bot's own name."""
+        return parseaddr(self.smtp_from)[1] or self.smtp_from or self.smtp_user
 
     @property
     def sync_times(self) -> list[str]:
